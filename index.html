@@ -447,7 +447,7 @@ window.PRS_CONFIG = {
   <canvas id="analysisCanvas" hidden></canvas>
 
 <script>
-(() => {
+window.addEventListener("DOMContentLoaded", () => {
   const $ = (s) => document.querySelector(s);
   const fileInput = $('#fileInput');
   const dropZone = $('#dropZone');
@@ -2280,7 +2280,7 @@ window.PRS_CONFIG = {
     toast('Galerie vidée');
   }
 
-})();
+});;
 
 </script>
 </body>
