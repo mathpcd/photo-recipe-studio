@@ -1815,25 +1815,51 @@ window.addEventListener("DOMContentLoaded", () => {
     if (newsletter && !email) { msg.textContent = 'Ajoute un e-mail pour recevoir la newsletter.'; return; }
 
     if (cloudEnabled) {
-      msg.textContent = 'Création du compte…';
-      const authEmail = usernameToAuthEmail(username);
-      const { data, error } = await supabaseClient.auth.signUp({
-        email: authEmail,
-        password,
-        options: { data: { username, contact_email: email || null, newsletter_opt_in: !!newsletter } }
-      });
-      if (error) { msg.textContent = friendlyAuthError(error.message); return; }
-      if (!data?.session) {
-        msg.textContent = 'Supabase a créé le compte mais bloque la session car la confirmation e-mail est encore active. Pour un login uniquement par pseudo, désactive Confirm email dans Authentication → Providers → Email.';
+      msg.textContent = 'Création sécurisée du compte…';
+      const cfg = window.PRS_CONFIG || {};
+      try {
+        const response = await fetch(`${cfg.SUPABASE_URL}/functions/v1/register-user`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': cfg.SUPABASE_PUBLISHABLE_KEY
+          },
+          body: JSON.stringify({
+            username,
+            password,
+            contact_email: email || null,
+            newsletter_opt_in: !!newsletter
+          })
+        });
+
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          msg.textContent = payload?.error || 'Impossible de créer le compte.';
+          return;
+        }
+
+        const authEmail = usernameToAuthEmail(username);
+        const { data, error } = await supabaseClient.auth.signInWithPassword({ email: authEmail, password });
+        if (error || !data?.user) {
+          msg.textContent = 'Compte créé, mais la connexion automatique a échoué. Essaie de te connecter.';
+          switchAuthTab('login');
+          $('#loginUsername').value = username;
+          return;
+        }
+
+        cloudHealthy = true;
+        updateCloudHealthUi(true,'Supabase accessible · compte synchronisé');
+        await applyCloudSession(data.user);
+        msg.textContent = 'Compte créé et connecté.';
+        refreshAccountUi();
+        showAccountPanel();
+        await renderGallery();
+        return;
+      } catch (err) {
+        console.warn('Registration failed', err);
+        msg.textContent = 'Impossible de joindre le service d’inscription. Réessaie.';
         return;
       }
-      cloudHealthy = true; updateCloudHealthUi(true,'Supabase accessible · compte synchronisé');
-      await applyCloudSession(data.user);
-      msg.textContent = 'Compte créé et synchronisé.';
-      refreshAccountUi();
-      showAccountPanel();
-      await renderGallery();
-      return;
     }
 
     const users = getUsers();
