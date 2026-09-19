@@ -15,7 +15,3 @@ Le frontend est déjà relié au projet Supabase configuré pour :
 - stockage photo,
 - rôle administrateur,
 - règles RLS.
-
-## Publication GitHub Pages
-
-Dans GitHub : Settings → Pages → Source: Deploy from a branch → Branch: main → /(root).
