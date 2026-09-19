@@ -154,7 +154,299 @@ window.PRS_CONFIG = {
 };
 
 </script>
-  <script defer>
+  
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#">PHOTO RECIPE <span>STUDIO</span></a>
+    <nav>
+      <a href="#analyse">Analyse</a>
+      <a href="#presets">Presets</a>
+      <a href="#masques">Masques</a>
+      <a href="#galerie">Galerie</a>
+      <a id="adminNavLink" class="hidden" href="#admin">Admin</a>
+    </nav>
+    <div class="account-actions">
+      <span id="sessionLabel" class="privacy-pill">Mode invité</span>
+      <button id="accountBtn" class="ghost top-account">Connexion</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" id="analyse">
+      <div class="hero-copy">
+        <p class="eyebrow">Assistant photo RAW / JPEG / PNG</p>
+        <h1>De ta photo brute à une <em>recette Lightroom</em> complète.</h1>
+        <p class="lead">Charge une image. Le site mesure la lumière, les couleurs, le contraste et les sujets, puis calcule six rendus adaptés et un plan de masquage local.</p>
+        <div class="hero-tags">
+          <span>RAW*</span><span>JPEG</span><span>PNG</span>
+        </div>
+        <p class="raw-note">* Pour les RAW (ARW, CR2, CR3, NEF, RAF, DNG, RW2…), le navigateur analyse l’aperçu JPEG embarqué quand il est disponible.</p>
+      </div>
+
+      <div class="upload-card" id="dropZone">
+        <input id="fileInput" type="file" accept="image/jpeg,image/png,image/webp,.arw,.cr2,.cr3,.nef,.raf,.dng,.rw2,.orf,.pef,.srw" hidden />
+        <div class="upload-icon">↥</div>
+        <h2>Dépose ta photo ici</h2>
+        <p>ou clique pour choisir un fichier</p>
+        <button id="chooseBtn" class="primary">Choisir une photo</button>
+        <div class="mini">Analyse locale · compte cloud facultatif pour synchroniser ta galerie</div>
+      </div>
+    </section>
+
+    <section id="workspace" class="workspace hidden">
+      <div class="image-panel card">
+        <div class="card-head">
+          <div>
+            <span class="kicker">PHOTO SOURCE</span>
+            <h2 id="fileName">—</h2>
+          </div>
+          <button id="replaceBtn" class="ghost">Changer</button>
+        </div>
+        <div class="preview-wrap">
+          <img id="preview" alt="Prévisualisation de la photo" />
+          <div id="analysisOverlay" class="analysis-overlay"></div>
+        </div>
+        <div id="exifRow" class="exif-row"></div>
+      </div>
+
+      <div class="analysis-panel card">
+        <div class="card-head">
+          <div>
+            <span class="kicker">ANALYSE</span>
+            <h2>Diagnostic de l’image</h2>
+          </div>
+          <div id="statusPill" class="status-pill">En attente</div>
+        </div>
+
+        <div id="sceneSummary" class="scene-summary">
+          <div class="pulse"></div>
+          <p>Charge une photo pour lancer l’analyse.</p>
+        </div>
+
+        <div class="analysis-highlights">
+          <div id="scoreCard" class="score-card">
+            <div class="score-ring"><strong>—</strong><span>/100</span></div>
+            <div>
+              <span class="kicker">NOTE PHOTO</span>
+              <h3>Qualité visuelle</h3>
+              <p>Estimation technique + esthétique : exposition, dynamique, détails, couleurs et composition.</p>
+            </div>
+          </div>
+          <div class="subject-card">
+            <span class="kicker">SUJETS DÉTECTÉS</span>
+            <div id="subjectList" class="subject-list"><span class="subject-chip muted">En attente</span></div>
+            <p id="subjectNote">Humains, animaux et objets sont détectés localement dans ton navigateur.</p>
+          </div>
+        </div>
+
+        <div id="metricGrid" class="metric-grid"></div>
+
+        <div class="override-box">
+          <label for="sceneOverride">Le type de scène est mal détecté ?</label>
+          <select id="sceneOverride">
+            <option value="auto">Détection automatique</option>
+            <option value="mountain">Montagne / paysage</option>
+            <option value="forest">Forêt / végétation</option>
+            <option value="sea">Mer / plage</option>
+            <option value="city">Ville / architecture</option>
+            <option value="street">Street photo</option>
+            <option value="portrait">Portrait</option>
+            <option value="sunset">Coucher / lever de soleil</option>
+            <option value="night">Nuit / astro</option>
+            <option value="indoor">Intérieur</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <section id="presets" class="results-section hidden">
+      <div class="section-heading">
+        <div>
+          <span class="kicker">01 · RECETTES</span>
+          <h2>6 rendus calculés pour cette photo</h2>
+          <p>Chaque rendu part des mesures réelles de cette image : exposition, dynamique, dominante couleur, contraste, sujet et scène détectée.</p>
+        </div>
+      </div>
+      <div id="presetGrid" class="preset-grid"></div>
+
+      <div id="presetLab" class="preset-lab card hidden">
+        <div class="preset-lab-head">
+          <div>
+            <span class="kicker">APERÇU DIRECT</span>
+            <h3 id="presetLabTitle">Preset appliqué</h3>
+            <p>Fais glisser le rond directement sur la photo pour comparer. Les réglages sont recalculés à partir du diagnostic de cette image.</p>
+          </div>
+          <button id="closePresetLabBtn" class="ghost">Fermer</button>
+        </div>
+        <div class="preset-compare single-compare">
+          <div class="compare-stage" id="compareStage">
+            <img id="presetBefore" class="compare-layer compare-before" alt="Photo avant preset" />
+            <canvas id="presetCanvas" class="compare-layer compare-after"></canvas>
+            <div id="compareDivider" class="compare-divider"><div class="compare-handle" aria-hidden="true">↔</div></div>
+            <div class="compare-badge before">Avant</div>
+            <div class="compare-badge after">Après</div>
+          </div>
+        </div>
+        <div class="preset-lab-controls">
+          <label>Intensité du preset <strong id="presetIntensityValue">100%</strong>
+            <input id="presetIntensity" type="range" min="0" max="125" value="100" step="1">
+          </label>
+          <div class="preset-lab-actions">
+            <button id="downloadPresetJpegBtn" class="primary">Télécharger le JPEG retouché</button>
+            <button id="resetPresetIntensityBtn" class="ghost">Remettre à 100%</button>
+          </div>
+        </div>
+        <p class="preset-engine-note">Le JPEG exporté applique exposition, contraste, hautes lumières, ombres, blancs/noirs, température, teinte, saturation/vibrance et les principaux ajustements HSL. Les masques locaux restent à faire dans Lightroom/Photoshop.</p>
+      </div>
+    </section>
+
+    <section id="masques" class="results-section hidden">
+      <div class="section-heading">
+        <div>
+          <span class="kicker">02 · MASQUAGE</span>
+          <h2>Plan de retouche locale</h2>
+          <p>Des masques à créer dans Lightroom, dans l’ordre, avec l’intention et les réglages conseillés.</p>
+        </div>
+      </div>
+      <div class="mask-layout">
+        <div class="mask-main-col">
+          <div id="maskVisualCard" class="card mask-visual-card hidden">
+            <div class="mask-visual-head">
+              <span class="kicker">APERÇU DES ZONES</span>
+              <h3>Masques suggérés sur ta photo</h3>
+              <p>Les couleurs et hachures sont superposées directement sur ta photo. Le moteur combine segmentation sémantique, détection du sujet et analyse locale des pixels.</p>
+            </div>
+            <div class="mask-visual-wrap">
+              <img id="maskGuideImage" alt="Guide des zones de masquage" />
+              <canvas id="maskGuideCanvas"></canvas>
+            </div>
+            <div id="maskVisualLegend" class="mask-visual-legend"></div>
+          </div>
+          <div id="maskPlan" class="mask-plan"></div>
+        </div>
+        <div class="workflow-card card">
+          <span class="kicker">WORKFLOW CONSEILLÉ</span>
+          <h3>Ordre de travail</h3>
+          <ol id="workflowList"></ol>
+          <div class="photoshop-tip" id="photoshopTip"></div>
+        </div>
+      </div>
+    </section>
+
+
+    <section id="galerie" class="results-section gallery-section">
+      <div class="section-heading">
+        <div>
+          <span class="kicker">04 · MÉMOIRE</span>
+          <h2>Galerie des meilleures photos</h2>
+          <p>Les photos enregistrées sont classées automatiquement par note et synchronisées dans ton compte sur tous tes appareils.</p>
+        </div>
+        <div class="gallery-actions">
+          <button id="saveCurrentBtn" class="primary" disabled>Enregistrer la photo actuelle</button>
+          <button id="clearGalleryBtn" class="ghost">Vider ma galerie</button>
+        </div>
+      </div>
+      <div id="galleryGate" class="gallery-gate card">
+        <h3>Connecte-toi pour activer la mémoire</h3>
+        <p>Crée un compte avec un pseudo et un mot de passe. L’adresse e-mail reste facultative et sert uniquement aux nouveautés / newsletter si tu l’acceptes.</p>
+        <button id="galleryLoginBtn" class="primary">Créer un compte / Se connecter</button>
+      </div>
+      <div id="galleryStats" class="gallery-stats hidden"></div>
+      <div id="galleryGrid" class="gallery-grid hidden"></div>
+    </section>
+
+
+    <section id="admin" class="results-section admin-section hidden">
+      <div class="section-heading">
+        <div>
+          <span class="kicker">05 · ADMINISTRATION</span>
+          <h2>Tableau de bord admin</h2>
+          <p>Gestion des comptes, suivi de la galerie et modération. Les mots de passe ne sont jamais accessibles depuis cet espace.</p>
+        </div>
+        <button id="refreshAdminBtn" class="ghost">Actualiser</button>
+      </div>
+      <div id="adminGate" class="gallery-gate card">
+        <h3>Accès administrateur requis</h3>
+        <p>Cette zone n’est visible que pour les comptes ayant le rôle <code>admin</code> dans Supabase.</p>
+      </div>
+      <div id="adminDashboard" class="hidden">
+        <div id="adminStats" class="admin-stats"></div>
+        <div class="admin-grid">
+          <section class="card admin-card">
+            <div class="admin-card-head">
+              <div><span class="kicker">UTILISATEURS</span><h3>Comptes récents</h3></div>
+              <input id="adminUserSearch" type="search" placeholder="Rechercher un pseudo…">
+            </div>
+            <div id="adminUsersTable" class="admin-table-wrap"></div>
+          </section>
+          <section class="card admin-card">
+            <div class="admin-card-head">
+              <div><span class="kicker">PHOTOS</span><h3>Meilleures photos globales</h3></div>
+            </div>
+            <div id="adminPhotosGrid" class="admin-photo-grid"></div>
+          </section>
+        </div>
+      </div>
+    </section>
+
+    <section id="report" class="results-section hidden">
+      <div class="section-heading">
+        <div>
+          <span class="kicker">03 · FICHE FINALE</span>
+          <h2>Ta checklist de développement</h2>
+        </div>
+        <button id="copyReportBtn" class="primary">Copier la fiche</button>
+      </div>
+      <div id="finalReport" class="report-box"></div>
+    </section>
+  </main>
+
+  <footer>
+    <strong>Photo Recipe Studio</strong>
+  </footer>
+
+
+  <div id="accountModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="accountTitle">
+    <div class="modal-card card">
+      <button id="closeAccountBtn" class="modal-close" aria-label="Fermer">×</button>
+      <span class="kicker">COMPTE CLOUD</span>
+      <h2 id="accountTitle">Connexion</h2>
+      <p class="modal-copy">Ton compte est synchronisé via Supabase. Tu te connectes avec ton pseudo + mot de passe ; ton e-mail est facultatif.</p>
+      <div id="cloudHealth" class="cloud-health checking"><span class="cloud-health-dot"></span><div><strong>Connexion cloud</strong><small>Vérification de Supabase…</small></div></div>
+      <div class="auth-tabs">
+        <button id="loginTab" class="auth-tab active">Connexion</button>
+        <button id="registerTab" class="auth-tab">Créer un compte</button>
+      </div>
+      <form id="loginForm" class="auth-form">
+        <label>Pseudo<input id="loginUsername" autocomplete="username" required minlength="3" maxlength="24"></label>
+        <label>Mot de passe<input id="loginPassword" type="password" autocomplete="current-password" required minlength="6"></label>
+        <button class="primary" type="submit">Se connecter</button>
+      </form>
+      <form id="registerForm" class="auth-form hidden">
+        <label>Pseudo<input id="registerUsername" autocomplete="username" required minlength="3" maxlength="24"></label>
+        <label>Mot de passe<input id="registerPassword" type="password" autocomplete="new-password" required minlength="6"></label>
+        <label>E-mail <span class="optional">facultatif</span><input id="registerEmail" type="email" autocomplete="email" placeholder="toi@exemple.com"></label>
+        <label class="check-row"><input id="newsletterOptIn" type="checkbox"> Recevoir les nouveautés et la newsletter</label>
+        <button class="primary" type="submit">Créer mon compte</button>
+      </form>
+      <div id="accountPanel" class="account-panel hidden">
+        <h3 id="accountWelcome"></h3>
+        <p id="accountEmailInfo"></p>
+        <form id="profileForm" class="auth-form profile-form">
+          <label>E-mail de contact <span class="optional">facultatif</span><input id="profileEmail" type="email" autocomplete="email" placeholder="toi@exemple.com"></label>
+          <label class="check-row"><input id="profileNewsletter" type="checkbox"> Recevoir les nouveautés et la newsletter</label>
+          <button class="ghost" type="submit">Mettre à jour mes préférences</button>
+        </form>
+        <button id="logoutBtn" class="ghost logout-btn">Se déconnecter</button>
+      </div>
+      <p id="authMessage" class="auth-message"></p>
+    </div>
+  </div>
+
+  <canvas id="analysisCanvas" hidden></canvas>
+
+<script>
 (() => {
   const $ = (s) => document.querySelector(s);
   const fileInput = $('#fileInput');
@@ -1991,295 +2283,5 @@ window.PRS_CONFIG = {
 })();
 
 </script>
-</head>
-<body>
-  <header class="topbar">
-    <a class="brand" href="#">PHOTO RECIPE <span>STUDIO</span></a>
-    <nav>
-      <a href="#analyse">Analyse</a>
-      <a href="#presets">Presets</a>
-      <a href="#masques">Masques</a>
-      <a href="#galerie">Galerie</a>
-      <a id="adminNavLink" class="hidden" href="#admin">Admin</a>
-    </nav>
-    <div class="account-actions">
-      <span id="sessionLabel" class="privacy-pill">Mode invité</span>
-      <button id="accountBtn" class="ghost top-account">Connexion</button>
-    </div>
-  </header>
-
-  <main>
-    <section class="hero" id="analyse">
-      <div class="hero-copy">
-        <p class="eyebrow">Assistant photo RAW / JPEG / PNG</p>
-        <h1>De ta photo brute à une <em>recette Lightroom</em> complète.</h1>
-        <p class="lead">Charge une image. Le site mesure la lumière, les couleurs, le contraste et les sujets, puis calcule six rendus adaptés et un plan de masquage local.</p>
-        <div class="hero-tags">
-          <span>RAW*</span><span>JPEG</span><span>PNG</span>
-        </div>
-        <p class="raw-note">* Pour les RAW (ARW, CR2, CR3, NEF, RAF, DNG, RW2…), le navigateur analyse l’aperçu JPEG embarqué quand il est disponible.</p>
-      </div>
-
-      <div class="upload-card" id="dropZone">
-        <input id="fileInput" type="file" accept="image/jpeg,image/png,image/webp,.arw,.cr2,.cr3,.nef,.raf,.dng,.rw2,.orf,.pef,.srw" hidden />
-        <div class="upload-icon">↥</div>
-        <h2>Dépose ta photo ici</h2>
-        <p>ou clique pour choisir un fichier</p>
-        <button id="chooseBtn" class="primary">Choisir une photo</button>
-        <div class="mini">Analyse locale · compte cloud facultatif pour synchroniser ta galerie</div>
-      </div>
-    </section>
-
-    <section id="workspace" class="workspace hidden">
-      <div class="image-panel card">
-        <div class="card-head">
-          <div>
-            <span class="kicker">PHOTO SOURCE</span>
-            <h2 id="fileName">—</h2>
-          </div>
-          <button id="replaceBtn" class="ghost">Changer</button>
-        </div>
-        <div class="preview-wrap">
-          <img id="preview" alt="Prévisualisation de la photo" />
-          <div id="analysisOverlay" class="analysis-overlay"></div>
-        </div>
-        <div id="exifRow" class="exif-row"></div>
-      </div>
-
-      <div class="analysis-panel card">
-        <div class="card-head">
-          <div>
-            <span class="kicker">ANALYSE</span>
-            <h2>Diagnostic de l’image</h2>
-          </div>
-          <div id="statusPill" class="status-pill">En attente</div>
-        </div>
-
-        <div id="sceneSummary" class="scene-summary">
-          <div class="pulse"></div>
-          <p>Charge une photo pour lancer l’analyse.</p>
-        </div>
-
-        <div class="analysis-highlights">
-          <div id="scoreCard" class="score-card">
-            <div class="score-ring"><strong>—</strong><span>/100</span></div>
-            <div>
-              <span class="kicker">NOTE PHOTO</span>
-              <h3>Qualité visuelle</h3>
-              <p>Estimation technique + esthétique : exposition, dynamique, détails, couleurs et composition.</p>
-            </div>
-          </div>
-          <div class="subject-card">
-            <span class="kicker">SUJETS DÉTECTÉS</span>
-            <div id="subjectList" class="subject-list"><span class="subject-chip muted">En attente</span></div>
-            <p id="subjectNote">Humains, animaux et objets sont détectés localement dans ton navigateur.</p>
-          </div>
-        </div>
-
-        <div id="metricGrid" class="metric-grid"></div>
-
-        <div class="override-box">
-          <label for="sceneOverride">Le type de scène est mal détecté ?</label>
-          <select id="sceneOverride">
-            <option value="auto">Détection automatique</option>
-            <option value="mountain">Montagne / paysage</option>
-            <option value="forest">Forêt / végétation</option>
-            <option value="sea">Mer / plage</option>
-            <option value="city">Ville / architecture</option>
-            <option value="street">Street photo</option>
-            <option value="portrait">Portrait</option>
-            <option value="sunset">Coucher / lever de soleil</option>
-            <option value="night">Nuit / astro</option>
-            <option value="indoor">Intérieur</option>
-          </select>
-        </div>
-      </div>
-    </section>
-
-    <section id="presets" class="results-section hidden">
-      <div class="section-heading">
-        <div>
-          <span class="kicker">01 · RECETTES</span>
-          <h2>6 rendus calculés pour cette photo</h2>
-          <p>Chaque rendu part des mesures réelles de cette image : exposition, dynamique, dominante couleur, contraste, sujet et scène détectée.</p>
-        </div>
-      </div>
-      <div id="presetGrid" class="preset-grid"></div>
-
-      <div id="presetLab" class="preset-lab card hidden">
-        <div class="preset-lab-head">
-          <div>
-            <span class="kicker">APERÇU DIRECT</span>
-            <h3 id="presetLabTitle">Preset appliqué</h3>
-            <p>Fais glisser le rond directement sur la photo pour comparer. Les réglages sont recalculés à partir du diagnostic de cette image.</p>
-          </div>
-          <button id="closePresetLabBtn" class="ghost">Fermer</button>
-        </div>
-        <div class="preset-compare single-compare">
-          <div class="compare-stage" id="compareStage">
-            <img id="presetBefore" class="compare-layer compare-before" alt="Photo avant preset" />
-            <canvas id="presetCanvas" class="compare-layer compare-after"></canvas>
-            <div id="compareDivider" class="compare-divider"><div class="compare-handle" aria-hidden="true">↔</div></div>
-            <div class="compare-badge before">Avant</div>
-            <div class="compare-badge after">Après</div>
-          </div>
-        </div>
-        <div class="preset-lab-controls">
-          <label>Intensité du preset <strong id="presetIntensityValue">100%</strong>
-            <input id="presetIntensity" type="range" min="0" max="125" value="100" step="1">
-          </label>
-          <div class="preset-lab-actions">
-            <button id="downloadPresetJpegBtn" class="primary">Télécharger le JPEG retouché</button>
-            <button id="resetPresetIntensityBtn" class="ghost">Remettre à 100%</button>
-          </div>
-        </div>
-        <p class="preset-engine-note">Le JPEG exporté applique exposition, contraste, hautes lumières, ombres, blancs/noirs, température, teinte, saturation/vibrance et les principaux ajustements HSL. Les masques locaux restent à faire dans Lightroom/Photoshop.</p>
-      </div>
-    </section>
-
-    <section id="masques" class="results-section hidden">
-      <div class="section-heading">
-        <div>
-          <span class="kicker">02 · MASQUAGE</span>
-          <h2>Plan de retouche locale</h2>
-          <p>Des masques à créer dans Lightroom, dans l’ordre, avec l’intention et les réglages conseillés.</p>
-        </div>
-      </div>
-      <div class="mask-layout">
-        <div class="mask-main-col">
-          <div id="maskVisualCard" class="card mask-visual-card hidden">
-            <div class="mask-visual-head">
-              <span class="kicker">APERÇU DES ZONES</span>
-              <h3>Masques suggérés sur ta photo</h3>
-              <p>Les couleurs et hachures sont superposées directement sur ta photo. Le moteur combine segmentation sémantique, détection du sujet et analyse locale des pixels.</p>
-            </div>
-            <div class="mask-visual-wrap">
-              <img id="maskGuideImage" alt="Guide des zones de masquage" />
-              <canvas id="maskGuideCanvas"></canvas>
-            </div>
-            <div id="maskVisualLegend" class="mask-visual-legend"></div>
-          </div>
-          <div id="maskPlan" class="mask-plan"></div>
-        </div>
-        <div class="workflow-card card">
-          <span class="kicker">WORKFLOW CONSEILLÉ</span>
-          <h3>Ordre de travail</h3>
-          <ol id="workflowList"></ol>
-          <div class="photoshop-tip" id="photoshopTip"></div>
-        </div>
-      </div>
-    </section>
-
-
-    <section id="galerie" class="results-section gallery-section">
-      <div class="section-heading">
-        <div>
-          <span class="kicker">04 · MÉMOIRE</span>
-          <h2>Galerie des meilleures photos</h2>
-          <p>Les photos enregistrées sont classées automatiquement par note et synchronisées dans ton compte sur tous tes appareils.</p>
-        </div>
-        <div class="gallery-actions">
-          <button id="saveCurrentBtn" class="primary" disabled>Enregistrer la photo actuelle</button>
-          <button id="clearGalleryBtn" class="ghost">Vider ma galerie</button>
-        </div>
-      </div>
-      <div id="galleryGate" class="gallery-gate card">
-        <h3>Connecte-toi pour activer la mémoire</h3>
-        <p>Crée un compte avec un pseudo et un mot de passe. L’adresse e-mail reste facultative et sert uniquement aux nouveautés / newsletter si tu l’acceptes.</p>
-        <button id="galleryLoginBtn" class="primary">Créer un compte / Se connecter</button>
-      </div>
-      <div id="galleryStats" class="gallery-stats hidden"></div>
-      <div id="galleryGrid" class="gallery-grid hidden"></div>
-    </section>
-
-
-    <section id="admin" class="results-section admin-section hidden">
-      <div class="section-heading">
-        <div>
-          <span class="kicker">05 · ADMINISTRATION</span>
-          <h2>Tableau de bord admin</h2>
-          <p>Gestion des comptes, suivi de la galerie et modération. Les mots de passe ne sont jamais accessibles depuis cet espace.</p>
-        </div>
-        <button id="refreshAdminBtn" class="ghost">Actualiser</button>
-      </div>
-      <div id="adminGate" class="gallery-gate card">
-        <h3>Accès administrateur requis</h3>
-        <p>Cette zone n’est visible que pour les comptes ayant le rôle <code>admin</code> dans Supabase.</p>
-      </div>
-      <div id="adminDashboard" class="hidden">
-        <div id="adminStats" class="admin-stats"></div>
-        <div class="admin-grid">
-          <section class="card admin-card">
-            <div class="admin-card-head">
-              <div><span class="kicker">UTILISATEURS</span><h3>Comptes récents</h3></div>
-              <input id="adminUserSearch" type="search" placeholder="Rechercher un pseudo…">
-            </div>
-            <div id="adminUsersTable" class="admin-table-wrap"></div>
-          </section>
-          <section class="card admin-card">
-            <div class="admin-card-head">
-              <div><span class="kicker">PHOTOS</span><h3>Meilleures photos globales</h3></div>
-            </div>
-            <div id="adminPhotosGrid" class="admin-photo-grid"></div>
-          </section>
-        </div>
-      </div>
-    </section>
-
-    <section id="report" class="results-section hidden">
-      <div class="section-heading">
-        <div>
-          <span class="kicker">03 · FICHE FINALE</span>
-          <h2>Ta checklist de développement</h2>
-        </div>
-        <button id="copyReportBtn" class="primary">Copier la fiche</button>
-      </div>
-      <div id="finalReport" class="report-box"></div>
-    </section>
-  </main>
-
-  <footer>
-    <strong>Photo Recipe Studio</strong>
-  </footer>
-
-
-  <div id="accountModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="accountTitle">
-    <div class="modal-card card">
-      <button id="closeAccountBtn" class="modal-close" aria-label="Fermer">×</button>
-      <span class="kicker">COMPTE CLOUD</span>
-      <h2 id="accountTitle">Connexion</h2>
-      <p class="modal-copy">Ton compte est synchronisé via Supabase. Tu te connectes avec ton pseudo + mot de passe ; ton e-mail est facultatif.</p>
-      <div id="cloudHealth" class="cloud-health checking"><span class="cloud-health-dot"></span><div><strong>Connexion cloud</strong><small>Vérification de Supabase…</small></div></div>
-      <div class="auth-tabs">
-        <button id="loginTab" class="auth-tab active">Connexion</button>
-        <button id="registerTab" class="auth-tab">Créer un compte</button>
-      </div>
-      <form id="loginForm" class="auth-form">
-        <label>Pseudo<input id="loginUsername" autocomplete="username" required minlength="3" maxlength="24"></label>
-        <label>Mot de passe<input id="loginPassword" type="password" autocomplete="current-password" required minlength="6"></label>
-        <button class="primary" type="submit">Se connecter</button>
-      </form>
-      <form id="registerForm" class="auth-form hidden">
-        <label>Pseudo<input id="registerUsername" autocomplete="username" required minlength="3" maxlength="24"></label>
-        <label>Mot de passe<input id="registerPassword" type="password" autocomplete="new-password" required minlength="6"></label>
-        <label>E-mail <span class="optional">facultatif</span><input id="registerEmail" type="email" autocomplete="email" placeholder="toi@exemple.com"></label>
-        <label class="check-row"><input id="newsletterOptIn" type="checkbox"> Recevoir les nouveautés et la newsletter</label>
-        <button class="primary" type="submit">Créer mon compte</button>
-      </form>
-      <div id="accountPanel" class="account-panel hidden">
-        <h3 id="accountWelcome"></h3>
-        <p id="accountEmailInfo"></p>
-        <form id="profileForm" class="auth-form profile-form">
-          <label>E-mail de contact <span class="optional">facultatif</span><input id="profileEmail" type="email" autocomplete="email" placeholder="toi@exemple.com"></label>
-          <label class="check-row"><input id="profileNewsletter" type="checkbox"> Recevoir les nouveautés et la newsletter</label>
-          <button class="ghost" type="submit">Mettre à jour mes préférences</button>
-        </form>
-        <button id="logoutBtn" class="ghost logout-btn">Se déconnecter</button>
-      </div>
-      <p id="authMessage" class="auth-message"></p>
-    </div>
-  </div>
-
-  <canvas id="analysisCanvas" hidden></canvas>
 </body>
 </html>
